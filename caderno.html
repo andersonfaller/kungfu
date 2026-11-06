@@ -205,6 +205,9 @@ fieldset{border:0;margin:0;padding:0;min-width:0}
 .tr p{margin:4px 0 0;font-size:.92rem;white-space:pre-wrap;overflow-wrap:anywhere}
 .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
 .tags span{font-size:.75rem;border:1px solid var(--line);border-radius:99px;padding:1px 8px;color:var(--muted)}
+.tr-actions{display:flex;flex-direction:column;gap:6px}
+.tr.editing{background:var(--jade-soft);margin-inline:-8px;padding-inline:8px;border-radius:8px}
+#t-form{scroll-margin-top:64px}
 
 /* Referência */
 .prose{max-width:68ch}
@@ -296,7 +299,7 @@ td .han{font-size:1.15rem}
     <div class="card" id="t-resumo"></div>
     <div class="grid2">
       <form class="card form" id="t-form" autocomplete="off">
-        <div class="card-head"><h2>Registrar treino</h2><span class="muted small">Aula na ASKF: 1h30</span></div>
+        <div class="card-head"><h2 id="t-form-title">Registrar treino</h2><span class="muted small" id="t-form-sub">Aula na ASKF: 1h30</span></div>
         <div class="form-row">
           <div class="field"><label for="t-data">Data</label><input class="input" type="date" id="t-data" required></div>
           <div class="field"><label for="t-min">Duração (min)</label><input class="input" type="number" id="t-min" min="5" max="600" step="5" value="90"></div>
@@ -312,7 +315,7 @@ td .han{font-size:1.15rem}
           <div class="checks" id="t-foco"></div>
         </fieldset>
         <div class="field"><label for="t-notas">Notas do treino</label><textarea class="input" id="t-notas" placeholder="Correções que recebeu, o que travou, o que encaixou…"></textarea></div>
-        <div><button class="btn" type="submit" id="t-salvar">Registrar treino</button></div>
+        <div class="gtools"><button class="btn" type="submit" id="t-salvar">Registrar treino</button><button class="btn quiet" type="button" id="t-cancelar" hidden>Cancelar edição</button></div>
       </form>
       <div class="card">
         <div class="card-head"><h2>Histórico</h2><span class="muted small" id="t-count"></span></div>
@@ -408,7 +411,7 @@ const TIPOS = {maos:"Mãos livres", arma:"Arma", dupla:"Em dupla", especial:"Té
 const STATUS = {novo:"A aprender", aprendendo:"Aprendendo", aprendido:"Aprendido"};
 const AULAS = [
   {id:"tradicional", nome:"Kung Fu Tradicional"}, {id:"kati", nome:"Kati"}, {id:"combate", nome:"Combate"},
-  {id:"acrobacia", nome:"Acrobacia"}, {id:"forca", nome:"Força"}, {id:"livre", nome:"Treino livre"},
+  {id:"acrobacia", nome:"Acrobacia"}, {id:"forca", nome:"Força"}, {id:"chikung", nome:"Chi Kung"}, {id:"livre", nome:"Treino livre"},
 ];
 const CAMPOS = [
   {k:"resumo", t:"O que é", h:"Uma ou duas frases sobre a técnica ou o kati."},
@@ -721,7 +724,7 @@ function renderTreinos(){
 
   // Chips de foco: formas da fase atual + socos + chutes + itens em andamento
   const f = faseAtual();
-  const focoIds = [...new Set([...Object.keys(ITENS).filter(id=>st(id)==="aprendendo"), ...f.formas.map(i=>i.id)])];
+  const focoIds = [...new Set([...Object.keys(ITENS).filter(id=>st(id)==="aprendendo"), ...f.formas.map(i=>i.id), ...[...S.foco].filter(id=>ITENS[id])])];
   const focoHtml = focoIds.map(id => `<label class="check"><input type="checkbox" value="${id}" id="foco-${id}"${S.foco.has(id)?" checked":""}><span>${esc(ITENS[id].nome)}</span></label>`).join("")
     + ["socos","chutes"].map(k => `<label class="check"><input type="checkbox" value="${k}" id="foco-${k}"${S.foco.has(k)?" checked":""}><span>${k==="socos"?"Socos":"Chutes"}</span></label>`).join("");
   $("#t-foco").innerHTML = focoHtml;
@@ -734,13 +737,15 @@ function renderTreinos(){
     if (mk !== lastMonth) { html += `<div class="tmonth">${MESL[d.getMonth()]} ${d.getFullYear()}</div>`; lastMonth = mk; }
     const aulas = (tr.aulas||[]).map(a => (AULAS.find(x=>x.id===a)||{nome:a}).nome);
     const foco = (tr.foco||[]).map(x => x==="socos"?"Socos":x==="chutes"?"Chutes":(ITENS[x]?ITENS[x].nome:x));
-    html += `<div class="tr"><div class="d num">${d.getDate()}<small>${DIA[d.getDay()]}</small></div>
+    html += `<div class="tr${S.editTreino===tr._id?" editing":""}"><div class="d num">${d.getDate()}<small>${DIA[d.getDay()]}</small></div>
       <div><b>${fmtMin(tr.minutos)}</b> <span class="muted">· ${esc(tr.local||"")}</span>
         ${aulas.length||foco.length?`<div class="tags">${[...aulas,...foco].map(x=>`<span>${esc(x)}</span>`).join("")}</div>`:""}
         ${tr.notas?`<p>${esc(tr.notas)}</p>`:""}</div>
-      <div>${S.canWrite?`<button class="btn sm quiet" data-del="${esc(tr._id)}">Excluir</button>`:""}</div></div>`;
+      <div class="tr-actions">${S.canWrite?`<button class="btn sm quiet" data-edit="${esc(tr._id)}">Editar</button><button class="btn sm quiet" data-del="${esc(tr._id)}">Excluir</button>`:""}</div></div>`;
   }
   $("#t-lista").innerHTML = html || `<p class="empty">Nenhum treino registrado ainda. Use o formulário para registrar a aula de hoje.</p>`;
+  // O treino em edição foi apagado (aqui ou em outro aparelho): volta o formulário ao modo de registro.
+  if (S.editTreino && !S.treinos.some(t => t._id === S.editTreino)) resetTreinoForm();
 }
 function initTreinoForm(){
   $("#t-data").value = hoje();
@@ -753,17 +758,48 @@ function initTreinoForm(){
     const doc = {
       data, minutos: Math.max(0, Number($("#t-min").value)||0), local: $("#t-local").value,
       aulas: [...document.querySelectorAll("#t-aulas input:checked")].map(i=>i.value),
-      foco: [...S.foco], notas: $("#t-notas").value.trim(), criado: new Date().toISOString(),
+      foco: [...S.foco], notas: $("#t-notas").value.trim(),
     };
     const btn = $("#t-salvar"); btn.disabled = true;
+    const editId = S.editTreino;
     try {
-      await S.db.collection("treinos").add(doc);
-      $("#t-notas").value = ""; S.foco.clear();
-      document.querySelectorAll("#t-aulas input, #t-foco input").forEach(i=>{ i.checked = false; });
-      toast("Treino de "+fmtData(data)+" registrado.");
+      if (editId) {
+        const orig = S.treinos.find(t => t._id === editId) || {};
+        const {_id, ...resto} = orig;
+        await S.db.doc("treinos/"+editId).set({...resto, ...doc, editado: new Date().toISOString()});
+        toast("Treino de "+fmtData(data)+" atualizado.");
+      } else {
+        await S.db.collection("treinos").add({...doc, criado: new Date().toISOString()});
+        toast("Treino de "+fmtData(data)+" registrado.");
+      }
+      resetTreinoForm();
     } catch (err) { onWriteError(err); }
     finally { btn.disabled = false; }
   });
+  $("#t-cancelar").addEventListener("click", resetTreinoForm);
+}
+function resetTreinoForm(){
+  S.editTreino = null; S.foco.clear();
+  $("#t-data").value = hoje(); $("#t-min").value = 90; $("#t-local").value = "Academia"; $("#t-notas").value = "";
+  document.querySelectorAll("#t-aulas input, #t-foco input").forEach(i => { i.checked = false; });
+  $("#t-form-title").textContent = "Registrar treino"; $("#t-form-sub").textContent = "Aula na ASKF: 1h30";
+  $("#t-salvar").textContent = "Registrar treino"; $("#t-cancelar").hidden = true;
+  renderTreinos(); applyReadOnly();
+}
+function startEditTreino(id){
+  const tr = S.treinos.find(t => t._id === id); if (!tr || !S.canWrite) return;
+  S.editTreino = id; S.foco = new Set(tr.foco || []);
+  $("#t-data").value = tr.data || hoje();
+  $("#t-min").value = tr.minutos ?? 90;
+  $("#t-local").value = tr.local || "Academia";
+  document.querySelectorAll("#t-aulas input").forEach(i => { i.checked = (tr.aulas || []).includes(i.value); });
+  $("#t-notas").value = tr.notas || "";
+  $("#t-form-title").textContent = "Editar treino";
+  $("#t-form-sub").textContent = fmtData(tr.data);
+  $("#t-salvar").textContent = "Salvar alterações"; $("#t-cancelar").hidden = false;
+  renderTreinos(); applyReadOnly();
+  $("#t-form").scrollIntoView({block: "start"});
+  $("#t-data").focus({preventScroll: true});
 }
 
 /* ---------- Referência ---------- */
@@ -1066,6 +1102,8 @@ document.addEventListener("click", e => {
   if (open) { e.preventDefault(); openSheet(open.dataset.open); return; }
   const go = e.target.closest("[data-goto]");
   if (go) { setTimeout(() => { const t = document.getElementById("tile-"+go.dataset.goto); if (t) t.scrollIntoView({block:"center"}); }, 60); return; }
+  const ed = e.target.closest("[data-edit]");
+  if (ed) { startEditTreino(ed.dataset.edit); return; }
   const del = e.target.closest("[data-del]");
   if (del) {
     if (del.dataset.armed) { writeDoc("treinos/"+del.dataset.del, null, "delete").then(()=>toast("Treino excluído.")); }
