@@ -1,0 +1,650 @@
+<title>Tàolù</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;700&family=Spline+Sans+Mono:wght@400;500;600&family=LXGW+WenKai+TC:wght@400;700&display=swap">
+<style>
+/* Layout: manual técnico. Código à esquerda, a leitura numerada (a "partitura" do kati) à direita;
+   cada família de técnica tem uma cor própria, igual no código e na leitura. */
+:root{
+  --bg:#F5F5F1; --surface:#FFFFFF; --sunken:#ECECE6; --code:#EFEFE9; --ink:#151513; --muted:#5D5D56; --line:#D9D9D0;
+  --base:#8A5600; --passo:#2856A3; --mao:#AF311D; --perna:#1A6F45; --corpo:#79389B; --along:#0A6D78;
+  --side:#3B4557; --mod:#9C2A64; --num:#665400; --str:#496818; --cmt:#86867D;
+  --f-sans:"Spline Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-mono:"Spline Sans Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --f-han:"LXGW WenKai TC","Noto Serif TC","Kaiti TC","STKaiti","PMingLiU",serif;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111211; --surface:#181918; --sunken:#0C0D0C; --code:#141514; --ink:#EAEAE5; --muted:#A2A29A; --line:#2D2E2B;
+    --base:#E2AE52; --passo:#88ABF0; --mao:#F0846C; --perna:#62CB94; --corpo:#C995EB; --along:#58C6D0;
+    --side:#B7C2D6; --mod:#EF8FC1; --num:#D8C56A; --str:#AECA7D; --cmt:#7A7A72;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111211; --surface:#181918; --sunken:#0C0D0C; --code:#141514; --ink:#EAEAE5; --muted:#A2A29A; --line:#2D2E2B;
+  --base:#E2AE52; --passo:#88ABF0; --mao:#F0846C; --perna:#62CB94; --corpo:#C995EB; --along:#58C6D0;
+  --side:#B7C2D6; --mod:#EF8FC1; --num:#D8C56A; --str:#AECA7D; --cmt:#7A7A72;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{text-wrap:balance;margin:0;line-height:1.15}
+p{margin:0}
+a{color:var(--passo)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--passo);outline-offset:2px;border-radius:4px}
+.han{font-family:var(--f-han)}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+code,.code{font-family:var(--f-mono)}
+p code,li code,td code{font-size:.9em;background:var(--sunken);padding:1px 5px;border-radius:4px}
+
+/* Cabeçalho */
+.mast{display:grid;grid-template-columns:auto minmax(0,1fr);gap:clamp(16px,4vw,40px);align-items:center;padding-block:clamp(24px,5vw,48px) 22px}
+.glyph{font-size:clamp(4rem,13vw,8.5rem);line-height:.9;writing-mode:vertical-rl;letter-spacing:.02em;color:var(--ink)}
+.mast h1{font-size:clamp(2.6rem,7vw,4.4rem);font-weight:700;letter-spacing:-.02em;margin-top:6px}
+.mast h1 small{font-family:var(--f-mono);font-size:.32em;font-weight:500;letter-spacing:0;color:var(--muted);vertical-align:middle;margin-left:10px}
+.lede{max-width:62ch;font-size:clamp(1.02rem,1.6vw,1.15rem);margin-top:12px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:16px;font-size:.85rem;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;background:var(--k)}
+
+/* Barra */
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-block:1px solid var(--line)}
+.bar-in{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.links{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none;min-width:0}
+.links::-webkit-scrollbar{display:none}
+.links a{flex:none;color:var(--muted);text-decoration:none;font-weight:500;font-size:.93rem;padding:12px 9px}
+.links a:hover{color:var(--ink)}
+.langs{display:flex;flex:none;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.langs button{border:0;background:none;padding:6px 10px;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--muted)}
+.langs button+button{border-left:1px solid var(--line)}
+.langs button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+
+main{padding-block:8px 72px}
+section{padding-top:56px;scroll-margin-top:52px}
+.sec-head{display:grid;gap:8px;margin-bottom:20px;max-width:70ch}
+.sec-head h2{font-size:clamp(1.7rem,3.6vw,2.3rem);font-weight:700;letter-spacing:-.01em}
+.sec-head p{color:var(--muted)}
+
+/* Par código + leitura */
+.pair{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@media (min-width:900px){.pair{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}}
+.pane{border:1px solid var(--line);border-radius:var(--r);background:var(--surface);min-width:0;display:flex;flex-direction:column}
+.pane-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);font-size:.8rem;color:var(--muted);font-family:var(--f-mono)}
+.code-pane{background:var(--code)}
+pre.code{margin:0;padding:14px 16px;font-size:.88rem;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;tab-size:2}
+.score-pane .score{max-height:none}
+.pair.tall pre.code,.pair.tall .score{max-height:640px;overflow:auto}
+.copy{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:2px 8px;font-size:.75rem;cursor:pointer;font-family:var(--f-sans);color:var(--ink)}
+
+/* Cores do código */
+.t-base{color:var(--base)}.t-passo{color:var(--passo)}.t-mao{color:var(--mao)}.t-perna{color:var(--perna)}.t-corpo{color:var(--corpo)}.t-along{color:var(--along)}
+.t-base,.t-passo,.t-mao,.t-perna,.t-corpo,.t-along{font-weight:600}
+.t-side{color:var(--side);font-weight:500}
+.t-dir{color:var(--side);font-style:italic}
+.t-kw{color:var(--ink);font-weight:700}
+.t-key{color:var(--muted)}
+.t-mod{color:var(--mod);font-weight:700}
+.t-num{color:var(--num)}
+.t-str{color:var(--str)}
+.t-cmt{color:var(--cmt);font-style:italic}
+.t-call{color:var(--corpo);font-weight:600}
+.t-op{color:var(--muted);font-weight:700}
+.t-br{color:var(--muted)}
+.t-todo{color:var(--mao);font-weight:700}
+.t-unk,.t-bad{text-decoration:underline wavy var(--mao);text-underline-offset:3px}
+
+/* Leitura */
+.score{list-style:none;margin:0;padding:6px 0;overflow:auto}
+.score li{padding:7px 12px}
+.sh{padding-top:12px!important}
+.sh>div{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.sk{font-family:var(--f-mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.st{font-weight:700}
+.sh.d0 .st{font-size:1.1rem}
+.sz{font-size:1.15rem}
+.snote{font-size:.85rem;color:var(--muted);margin-top:4px;max-width:60ch}
+.sh.d2,.sh.d1{border-top:1px dashed var(--line)}
+.sm{display:grid;grid-template-columns:2.2rem minmax(0,1fr);gap:8px;align-items:start}
+.sn{font-family:var(--f-mono);font-size:.82rem;color:var(--muted);text-align:right;padding-top:3px}
+.sl{font-size:.84rem;color:var(--muted);margin-bottom:3px;font-style:italic}
+.sa{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.op{color:var(--muted);font-family:var(--f-mono);font-size:.8rem}
+.op.seq{color:var(--ink);font-weight:700;padding:0 2px}
+.chip{--k:var(--muted);display:inline-block;font-size:.85rem;line-height:1.3;padding:3px 8px;border-radius:6px;color:var(--k);background:color-mix(in srgb,var(--k) 11%,var(--surface));border:1px solid color-mix(in srgb,var(--k) 28%,transparent);font-weight:500}
+.k-base{--k:var(--base)}.k-passo{--k:var(--passo)}.k-mao{--k:var(--mao)}.k-perna{--k:var(--perna)}.k-corpo{--k:var(--corpo)}.k-along{--k:var(--along)}
+.k-livre{--k:var(--ink);border-style:dashed;background:transparent}
+.k-todo{--k:var(--mao);border-style:dashed;background:transparent;font-style:italic}
+.mod{font-family:var(--f-mono);font-size:.75rem;color:var(--mod);border:1px solid color-mix(in srgb,var(--mod) 30%,transparent);border-radius:99px;padding:1px 7px}
+.more,.empty{color:var(--muted);font-size:.9rem;padding:14px}
+
+/* Regras */
+.rules{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin-top:16px}
+.rule{border-top:2px solid var(--ink);padding-top:10px}
+.rule b{font-family:var(--f-mono);font-size:1.05rem;display:block;margin-bottom:4px}
+.rule p{font-size:.93rem;color:var(--muted)}
+
+/* Editor */
+.play{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+@media (min-width:900px){.play{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)}}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.toolbar label{font-size:.88rem;color:var(--muted)}
+select.input,input.input{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;min-width:0}
+.btn{border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:8px;padding:7px 12px;font-weight:700;font-size:.88rem;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.editor{position:relative;height:460px;border:1px solid var(--line);border-radius:var(--r);background:var(--code);overflow:hidden}
+.editor pre,.editor textarea{position:absolute;inset:0;margin:0;padding:14px 16px;border:0;font-family:var(--f-mono);font-size:14px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;word-break:normal;tab-size:2;letter-spacing:0;overflow-y:scroll;overflow-x:hidden}
+.editor pre{pointer-events:none;color:var(--ink)}
+.editor textarea{background:transparent;color:transparent;-webkit-text-fill-color:transparent;caret-color:var(--ink);resize:none;outline:none}
+.editor textarea::selection{background:color-mix(in srgb,var(--passo) 28%,transparent)}
+.editor:focus-within{border-color:var(--passo)}
+@media (max-width:640px){.editor pre,.editor textarea{font-size:16px}.editor{height:380px}}
+.out{display:flex;flex-direction:column;min-width:0}
+.out .pane{height:460px}
+@media (max-width:640px){.out .pane{height:auto;max-height:520px}}
+.out-body{overflow:auto;flex:1;min-height:0}
+.tabs{display:flex;gap:2px}
+.tabs button{border:0;background:none;padding:3px 8px;border-radius:6px;font-family:var(--f-mono);font-size:.78rem;color:var(--muted);cursor:pointer}
+.tabs button[aria-pressed="true"]{background:var(--sunken);color:var(--ink);font-weight:600}
+.status{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:.85rem;color:var(--muted);margin-top:8px}
+.errs{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:4px}
+.errs li{font-size:.88rem;display:flex;gap:8px;align-items:baseline}
+.errs button{border:0;background:color-mix(in srgb,var(--mao) 12%,transparent);color:var(--mao);border-radius:5px;padding:1px 7px;font-family:var(--f-mono);font-size:.78rem;cursor:pointer;flex:none}
+
+/* Guia */
+.guide{display:grid;gap:40px}
+.g{display:grid;gap:12px}
+.g h3{font-size:1.3rem;font-weight:700;display:flex;gap:10px;align-items:baseline}
+.g h3 .gn{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);font-weight:500}
+.g .txt{max-width:70ch;display:grid;gap:8px}
+.tri{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+@media (min-width:900px){.tri{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Vocabulário */
+.vtools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
+.vtools input{width:min(100%,340px)}
+.vcat{margin-top:22px}
+.vcat h3{font-size:1.1rem;font-weight:700;margin-bottom:8px}
+.vcat h3 .muted{font-weight:400;font-size:.95rem;margin-left:6px}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:last-child td{border-bottom:0}
+th{font-family:var(--f-mono);font-size:.72rem;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);white-space:nowrap}
+th.on{color:var(--ink);font-weight:700}
+td code{white-space:nowrap}
+td.zhc{font-size:1.25rem;white-space:nowrap}
+.vn{font-size:.8rem;color:var(--muted);margin-top:2px}
+td.vd{min-width:240px;max-width:380px}
+td.vl{font-size:.82rem;color:var(--muted);min-width:110px}
+td.on code,td.on.zhc{outline:2px solid color-mix(in srgb,var(--ink) 18%,transparent);outline-offset:1px;border-radius:4px}
+
+/* Exemplos */
+.extabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.extabs button{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 11px;cursor:pointer;text-align:left;display:grid;gap:1px}
+.extabs button b{font-size:.92rem}
+.extabs button span{font-size:.74rem;color:var(--muted)}
+.extabs button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.exhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-end;gap:12px;margin-bottom:12px}
+.exhead h3{font-size:1.5rem;font-weight:700}
+.exhead h3 .han{font-weight:400;margin-left:8px}
+.exhead p{color:var(--muted);max-width:70ch;margin-top:4px}
+.badge{display:inline-block;font-family:var(--f-mono);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;border:1px solid var(--line);border-radius:99px;padding:2px 8px;color:var(--muted);vertical-align:middle;margin-left:8px}
+.badge.fill{border-color:var(--mao);color:var(--mao)}
+
+/* Gramática */
+pre.ebnf{background:var(--code);border:1px solid var(--line);border-radius:var(--r);padding:16px;overflow-x:auto;font-size:.85rem;line-height:1.7;margin:0;white-space:pre}
+.notes{display:grid;gap:10px;max-width:70ch;margin-top:16px}
+footer{border-top:1px solid var(--line);padding-block:20px 40px;color:var(--muted);font-size:.85rem}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:99px;font-size:.88rem;z-index:30}
+</style>
+
+<header class="wrap mast">
+  <div class="glyph han" aria-hidden="true">套路</div>
+  <div>
+    <p class="eyebrow">Linguagem de notação para Kung Fu</p>
+    <h1>Tàolù <small>v0.1</small></h1>
+    <p class="lede">Escreva um kati como quem escreve código: bases, passos, mãos e pernas, um movimento por linha, com colchetes para as repetições. O texto vira uma leitura numerada e pode ser traduzido para inglês e chinês.</p>
+    <div class="legend" aria-label="Cores das famílias de técnica">
+      <span style="--k:var(--base)"><i></i>Bases</span><span style="--k:var(--passo)"><i></i>Passos</span><span style="--k:var(--mao)"><i></i>Mãos</span>
+      <span style="--k:var(--perna)"><i></i>Pernas</span><span style="--k:var(--corpo)"><i></i>Corpo e olhar</span><span style="--k:var(--along)"><i></i>Alongamentos</span>
+    </div>
+  </div>
+</header>
+
+<nav class="bar" aria-label="Seções">
+  <div class="wrap bar-in">
+    <div class="links">
+      <a href="#ideia">Ideia</a><a href="#experimente">Experimente</a><a href="#guia">Guia</a><a href="#vocabulario">Vocabulário</a><a href="#exemplos">Exemplos</a><a href="#gramatica">Gramática</a>
+    </div>
+    <div class="langs" role="group" aria-label="Língua do código e da leitura">
+      <button type="button" data-lang="pt">PT</button><button type="button" data-lang="en">EN</button><button type="button" data-lang="zh" class="han">中文</button>
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <section id="ideia">
+    <div class="sec-head">
+      <h2>A ideia</h2>
+      <p>À esquerda, três linhas de Tàolù. À direita, o que elas dizem, movimento por movimento. Troque a língua no alto para ver o mesmo kati em inglês ou chinês.</p>
+    </div>
+    <div id="hero"></div>
+    <div class="rules">
+      <div class="rule"><b>uma linha = um tempo</b><p>Cada linha é um movimento do kati, contado em voz alta na aula.</p></div>
+      <div class="rule"><b>+ junto · , depois</b><p>O sinal + liga o que acontece ao mesmo tempo. A vírgula separa o que vem em seguida, ainda no mesmo tempo.</p></div>
+      <div class="rule"><b>[ … ] x3 alt</b><p>Colchetes repetem um trecho. Com alt, a repetição troca os lados: a 2ª vez sai espelhada.</p></div>
+    </div>
+  </section>
+
+  <section id="experimente">
+    <div class="sec-head">
+      <h2>Experimente</h2>
+      <p>Escreva ou altere à esquerda. A leitura e as traduções se atualizam enquanto você digita, e os erros apontam a linha.</p>
+    </div>
+    <div class="toolbar">
+      <label for="p-ex">Começar de</label>
+      <select class="input" id="p-ex"></select>
+      <button class="btn ghost" type="button" id="p-clear">Limpar</button>
+    </div>
+    <div class="play">
+      <div>
+        <div class="editor">
+          <pre id="hl" aria-hidden="true"></pre>
+          <textarea id="ed" spellcheck="false" autocapitalize="off" autocomplete="off" aria-label="Código Tàolù"></textarea>
+        </div>
+        <div class="status" id="p-stats"></div>
+        <ul class="errs" id="p-errs" hidden></ul>
+      </div>
+      <div class="out">
+        <div class="pane">
+          <div class="pane-head">
+            <div class="tabs" role="group" aria-label="Mostrar">
+              <button type="button" data-out="leitura">Leitura</button><button type="button" data-out="pt">PT</button><button type="button" data-out="en">EN</button><button type="button" data-out="zh" class="han">中文</button>
+            </div>
+            <button class="copy" type="button" id="p-copy" hidden>Copiar</button>
+          </div>
+          <div class="out-body" id="p-out"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="guia">
+    <div class="sec-head">
+      <h2>Guia</h2>
+      <p>Oito conceitos cobrem a linguagem inteira. Cada exemplo abaixo é lido pelo mesmo interpretador do editor.</p>
+    </div>
+    <div class="guide">
+      <div class="g">
+        <h3><span class="gn">1</span>Um movimento por linha</h3>
+        <div class="txt">
+          <p>Cada linha é um tempo do kati. Dentro dela você lista as ações: a base, o que as mãos fazem, o que as pernas fazem, para onde se olha.</p>
+          <p><code>+</code> junta ações simultâneas. A vírgula separa o que vem em seguida, ainda no mesmo tempo: na 2ª linha, o pé avança e só depois o corpo chega na base do arco com o soco.</p>
+        </div>
+        <div class="demo" data-demo="linha"></div>
+      </div>
+      <div class="g">
+        <h3><span class="gn">2</span>Lado, altura e direção</h3>
+        <div class="txt">
+          <p><code>D</code> e <code>E</code> dizem qual mão, perna ou pé faz a ação. Nas bases, o lado indica uma perna específica: no arco é a perna da frente, na base baixa é a perna estendida. A tabela do vocabulário mostra a regra de cada termo.</p>
+          <p><code>alto</code>, <code>médio</code> e <code>baixo</code> dão a altura do golpe. <code>frente</code>, <code>trás</code>, <code>esquerda</code> e <code>direita</code> (ou as setas ↑ ↓ ← →) dão a direção, sempre em relação ao peito naquele momento. <code>gira 180 D</code> vira o corpo 180 graus para a direita.</p>
+        </div>
+        <div class="demo" data-demo="lados"></div>
+      </div>
+      <div class="g">
+        <h3><span class="gn">3</span>Repetição</h3>
+        <div class="txt">
+          <p><code>[ … ] x4</code> repete o trecho entre colchetes quatro vezes. Com <code>alt</code>, cada repetição troca os lados: D vira E, esquerda vira direita. É assim que se escreve uma linha do Tantui que vai alternando as pernas.</p>
+          <p>Um movimento sozinho pode levar o <code>x8</code> direto no fim, sem colchetes.</p>
+        </div>
+        <div class="demo" data-demo="repeticao"></div>
+      </div>
+      <div class="g">
+        <h3><span class="gn">4</span>Nomes para trechos que voltam</h3>
+        <div class="txt">
+          <p><code>def nome { … }</code> guarda um trecho com um nome. <code>@nome</code> executa o trecho naquele ponto, e <code>@nome espelho</code> executa do outro lado. Serve para aberturas, fechamentos e combinações que aparecem várias vezes.</p>
+        </div>
+        <div class="demo" data-demo="def"></div>
+      </div>
+      <div class="g">
+        <h3><span class="gn">5</span>Força, ritmo e respiração</h3>
+        <div class="txt">
+          <p>No fim da linha: <code>!</code> marca força explosiva (發力 fā lì), <code>~</code> marca movimento lento e suave, <code>*</code> marca o grito (com o texto opcional), <code>…</code> marca uma pausa e <code>segura 30s</code> mantém a posição. <code>inspira</code> e <code>expira</code> entram como ações.</p>
+        </div>
+        <div class="demo" data-demo="ritmo"></div>
+      </div>
+      <div class="g">
+        <h3><span class="gn">6</span>Nome da postura, texto livre e lacunas</h3>
+        <div class="txt">
+          <p>Um texto entre aspas no fim da linha dá nome à postura. No começo de uma ação, o texto entre aspas vira uma ação livre, para o que não está no vocabulário. <code>?</code> marca um movimento que você ainda vai descrever, e ele aparece em vermelho na leitura.</p>
+        </div>
+        <div class="demo" data-demo="texto"></div>
+      </div>
+      <div class="g">
+        <h3><span class="gn">7</span>Estrutura</h3>
+        <div class="txt">
+          <p><code>kati "Nome" { … }</code> abre uma forma. Dentro dela, <code>parte</code> e <code>linha</code> dividem o kati, e campos como <code>chinês:</code>, <code>estilo:</code> e <code>nota:</code> guardam informações. Para exercícios e alongamentos use <code>rotina</code>; para listas numeradas, como os socos e chutes da graduação, use <code>sequência</code> com <code>técnica 1</code>, <code>técnica 2</code>…</p>
+          <p>Tudo depois de <code>#</code> é comentário. Números no começo da linha, como <code>1.</code>, são ignorados: a leitura numera sozinha.</p>
+        </div>
+        <div class="demo" data-demo="estrutura"></div>
+      </div>
+      <div class="g">
+        <h3><span class="gn">8</span>Três línguas</h3>
+        <div class="txt">
+          <p>Cada termo tem nome em português, inglês e chinês, e o interpretador aceita os três, até misturados. Também aceita pinyin sem acentos, como <code>mabu</code> e <code>gongbu</code>. Em chinês o lado vem colado antes do termo, como se escreve nos manuais: <code>右弓步</code>.</p>
+          <p>Comentários, nomes de postura e textos livres ficam como foram escritos: são suas palavras, não termos da linguagem.</p>
+        </div>
+        <div class="tri" id="tri"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="vocabulario">
+    <div class="sec-head">
+      <h2>Vocabulário</h2>
+      <p>Os termos que o interpretador conhece, por família. A coluna da língua escolhida no alto fica destacada.</p>
+    </div>
+    <div class="vtools">
+      <input class="input" id="v-filter" type="search" placeholder="Buscar: soco, 弓步, crescent…" aria-label="Buscar no vocabulário">
+      <span class="muted" id="v-count"></span>
+    </div>
+    <div id="v-words"></div>
+    <div id="v-list"></div>
+  </section>
+
+  <section id="exemplos">
+    <div class="sec-head">
+      <h2>Exemplos</h2>
+      <p>O Wǔ Bù Quán está escrito do começo ao fim. O Tantui, o 1º Shaolin e os socos e chutes da graduação são modelos para preencher: a estrutura está pronta e cada <code>?</code> é um movimento que você ainda vai descrever.</p>
+    </div>
+    <div class="extabs" id="ex-tabs" role="group" aria-label="Escolher exemplo"></div>
+    <div id="ex-panel"></div>
+  </section>
+
+  <section id="gramatica">
+    <div class="sec-head">
+      <h2>Gramática</h2>
+      <p>A definição formal, para quem quiser escrever um interpretador ou conferir um caso difícil.</p>
+    </div>
+<pre class="ebnf">programa    = { item | bloco | def } ;
+bloco       = tipo [ número ] [ texto ] "{" { campo | item | bloco | def } "}" ;
+tipo        = "kati" | "rotina" | "sequência" | "parte" | "linha" | "técnica" ;
+def         = "def" nome "{" { item } "}" ;
+campo       = nome ":" ( texto | palavras ) ;
+
+item        = repetição | chamada | movimento ;
+repetição   = "[" { item } "]" vezes ;
+chamada     = "@" nome [ "espelho" ] [ vezes ] ;
+vezes       = ( "x" número [ "alt" ] ) | "alt" ;
+
+movimento   = grupo { "," grupo } { ajuste } [ texto ] ;
+grupo       = ação { "+" ação } ;
+ação        = termo { lado | altura | direção | número }
+            | texto                         (* ação livre *)
+            | "?" ;                         (* a descrever *)
+ajuste      = "!" | "~" | "…" | "*" [ texto ] | [ "segura" ] tempo | vezes ;
+
+lado        = "D" | "E" ;                   (* en: R L · 中文: 右 左 *)
+altura      = "alto" | "médio" | "baixo" ;
+direção     = "frente" | "trás" | "esquerda" | "direita" | "↑" | "↓" | "←" | "→" ;
+tempo       = número ( "s" | "min" ) ;
+texto       = '"' { caractere } '"' ;
+comentário  = "#" { caractere } fim-de-linha ;
+separador   = fim-de-linha | ";" ;</pre>
+    <div class="notes">
+      <p>Os termos são palavras de uma lista fechada, o vocabulário acima. Uma palavra desconhecida vira erro, com sugestão quando parece um erro de digitação. O que não estiver no vocabulário entra como texto entre aspas.</p>
+      <p>O espelho troca D com E e esquerda com direita, inclusive dentro de trechos chamados com <code>@</code>. Espelhos se combinam: um trecho espelhado dentro de uma repetição com <code>alt</code> volta ao lado original na 2ª vez.</p>
+      <p>Os arquivos da linguagem ficam na pasta <code>linguagem/</code> do repositório: <code>taolu.js</code> é o interpretador (funciona no navegador e no Node), <code>exemplos.js</code> guarda os exemplos desta página. A extensão sugerida para arquivos de kati é <code>.taolu</code>.</p>
+    </div>
+  </section>
+</main>
+
+<footer><div class="wrap">Tàolù 0.1 · notação para katis, sequências de golpes e rotinas de treino.</div></footer>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="taolu.js"></script>
+<script src="exemplos.js"></script>
+<script>
+(function () {
+  const T = window.Taolu, X = window.TaoluExemplos;
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fold = (s) => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const store = {
+    get(k) { try { return localStorage.getItem("taolu:" + k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem("taolu:" + k, v); } catch (e) {} },
+  };
+  if (!T || !X) { document.querySelector("main").insertAdjacentHTML("afterbegin", '<p class="empty">Não consegui carregar o interpretador (taolu.js). Recarregue a página.</p>'); return; }
+
+  const LANG_LABEL = { pt: "Português", en: "English", zh: "中文" };
+  const S = {
+    lang: ["pt", "en", "zh"].includes(store.get("lang")) ? store.get("lang") : "pt",
+    out: "leitura",
+    ex: "wubuquan",
+  };
+
+  function toast(msg) { const t = $("#toast"); t.textContent = msg; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 2200); }
+
+  function fmtDur(s, lang) {
+    if (lang === "zh") return s < 60 ? s + "秒" : Math.floor(s / 60) + "分" + (s % 60 ? (s % 60) + "秒" : "");
+    if (s < 60) return s + " s";
+    return Math.floor(s / 60) + " min" + (s % 60 ? " " + (s % 60) + " s" : "");
+  }
+  function statsText(st) {
+    if (!st.moves) return "nenhum movimento";
+    const p = [`${st.moves} ${st.moves === 1 ? "movimento" : "movimentos"}`];
+    if (st.todo) p.push(`${st.todo} a descrever`);
+    if (st.dur) p.push(`${fmtDur(st.dur, "pt")} segurando posições`);
+    if (st.truncated) p.push("leitura cortada no limite");
+    return p.join(" · ");
+  }
+  function codeIn(src, lang) {
+    if (lang === "pt") return src;
+    const r = T.parse(src);
+    return r.errors.length ? src : T.print(r.ast, lang);
+  }
+  function chip(a, lang) {
+    const d = T.describe(a, lang);
+    const title = d.zh ? `${d.zh} · ${d.py}` : "";
+    return `<span class="chip k-${d.cat}"${title ? ` title="${esc(title)}"` : ""}>${esc(d.text)}</span>`;
+  }
+  function modsHTML(m, lang) {
+    const w = T.WORDS.mods[lang], o = [];
+    if (m.forca) o.push(`<span class="mod">! ${w.forca}</span>`);
+    if (m.suave) o.push(`<span class="mod">~ ${w.suave}</span>`);
+    if (m.pausa) o.push(`<span class="mod">… ${w.pausa}</span>`);
+    if (m.grito) o.push(`<span class="mod">* ${m.grito === true ? w.grito : esc(m.grito)}</span>`);
+    if (m.dur) o.push(`<span class="mod">${fmtDur(m.dur, lang)}</span>`);
+    return o.join("");
+  }
+  function scoreHTML(rows, lang, max = 600) {
+    let h = '<ol class="score">';
+    let i = 0;
+    for (const r of rows) {
+      if (i++ >= max) { h += `<li class="more">… e mais ${rows.length - max} linhas</li>`; break; }
+      if (r.type === "head") {
+        const k = T.KIND_NAMES[lang][r.kind];
+        h += `<li class="sh d${Math.min(r.depth, 2)}"><div><span class="sk">${esc(k)}${r.num != null ? " " + r.num : ""}</span>` +
+          `${r.title != null ? `<span class="st">${esc(r.title)}</span>` : ""}${r.fields.chines ? `<span class="han sz">${esc(r.fields.chines)}</span>` : ""}</div>` +
+          `${r.fields.nota && r.depth === 0 ? `<p class="snote">${esc(r.fields.nota)}</p>` : ""}</li>`;
+        continue;
+      }
+      const acts = r.groups.map((g) => g.map((a) => chip(a, lang)).join('<span class="op">+</span>')).join('<span class="op seq" aria-label="depois">→</span>');
+      h += `<li class="sm"><span class="sn">${r.n}</span><div class="sb">${r.label ? `<div class="sl">${esc(r.label)}</div>` : ""}<div class="sa">${acts}${modsHTML(r.mods, lang)}</div></div></li>`;
+    }
+    return h + "</ol>";
+  }
+  function pairHTML(src, tall) {
+    const code = codeIn(src, S.lang);
+    const r = T.parse(src), e = T.expand(r.ast);
+    return `<div class="pair${tall ? " tall" : ""}">
+      <div class="pane code-pane"><div class="pane-head"><span>${LANG_LABEL[S.lang]}</span><button class="copy" type="button" data-copy>Copiar</button></div><pre class="code">${T.highlight(code)}</pre></div>
+      <div class="pane score-pane"><div class="pane-head"><span>Leitura</span><span>${esc(statsText(e.stats))}</span></div>${e.rows.length ? scoreHTML(e.rows, S.lang) : ""}</div>
+    </div>`;
+  }
+
+  /* ---------- Ideia e guia ---------- */
+  function renderDocs() {
+    $("#hero").innerHTML = pairHTML(X.HERO);
+    $$(".demo").forEach((el) => { el.innerHTML = pairHTML(X.DEMOS[el.dataset.demo] || ""); });
+    const ast = T.parse(X.DEMOS.linguas).ast;
+    $("#tri").innerHTML = ["pt", "en", "zh"].map((l) =>
+      `<div class="pane code-pane"><div class="pane-head"><span>${LANG_LABEL[l]}</span></div><pre class="code">${T.highlight(l === "pt" ? X.DEMOS.linguas : T.print(ast, l))}</pre></div>`).join("");
+  }
+
+  /* ---------- Vocabulário ---------- */
+  function renderWords() {
+    const on = (l) => (S.lang === l ? ' class="on"' : "");
+    const row = (desc, pt, en, zh) => `<tr><td>${desc}</td><td${on("pt")}><code>${esc(pt)}</code></td><td${on("en")}><code>${esc(en)}</code></td><td${on("zh")} class="han zhc">${esc(zh)}</td></tr>`;
+    const K = T.KW;
+    const rows = [
+      row("Forma", K.kati.pt[0], K.kati.en[0], K.kati.zh[0]),
+      row("Rotina de treino", K.rotina.pt[0], K.rotina.en[0], K.rotina.zh[0]),
+      row("Lista numerada", K.sequencia.pt[0], K.sequencia.en[0], K.sequencia.zh[0]),
+      row("Item numerado", K.tecnica.pt[0], K.tecnica.en[0], K.tecnica.zh[0]),
+      row("Parte de um kati", K.parte.pt[0], K.parte.en[0], K.parte.zh[0]),
+      row("Linha (Tantui)", K.linha.pt[0], K.linha.en[0], K.linha.zh[0]),
+      row("Trecho com nome", K.def.pt[0], K.def.en[0], K.def.zh[0]),
+      row("Alterna os lados", K.alt.pt[0], K.alt.en[0], K.alt.zh[0]),
+      row("Do outro lado", K.espelho.pt[0], K.espelho.en[0], K.espelho.zh[0]),
+      row("Mantém a posição", K.segura.pt[0], K.segura.en[0], K.segura.zh[0]),
+      row("Lado", "D  E", "R  L", "右  左"),
+      row("Altura", "alto  médio  baixo", "high  mid  low", "上  中  下"),
+      row("Direção", "frente  trás  esquerda  direita", "front  back  left  right", "向前  向後  向左  向右"),
+    ].join("");
+    const syms = [
+      ["+", "ao mesmo tempo"], [",", "em seguida, no mesmo tempo"], ["; ou nova linha", "próximo movimento"],
+      ["[ … ] x3", "repete três vezes"], ["alt", "alterna os lados a cada repetição"], ["@nome", "usa um trecho definido com def"],
+      ["!", "força explosiva"], ["~", "lento e suave"], ["*", "grito"], ["…", "pausa"], ["30s · 1min", "tempo"], ["?", "a descrever"],
+      ['"texto"', "nome da postura ou ação livre"], ["#", "comentário"], ["↑ ↓ ← →", "direções"],
+    ].map(([s, d]) => `<tr><td><code>${esc(s)}</code></td><td>${esc(d)}</td></tr>`).join("");
+    $("#v-words").innerHTML = `<div class="grid-words" style="display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))">
+      <div class="vcat"><h3>Palavras da linguagem</h3><div class="tbl"><table><thead><tr><th>Para</th><th${on("pt")}>Português</th><th${on("en")}>English</th><th${on("zh")}>中文</th></tr></thead><tbody>${rows}</tbody></table></div></div>
+      <div class="vcat"><h3>Sinais</h3><div class="tbl"><table><thead><tr><th>Sinal</th><th>Quer dizer</th></tr></thead><tbody>${syms}</tbody></table></div></div></div>`;
+  }
+  function renderVocab() {
+    const q = fold($("#v-filter").value.trim());
+    const on = (l) => (S.lang === l ? " on" : "");
+    let html = "", total = 0;
+    for (const [cat, names] of Object.entries(T.CATS)) {
+      const rows = T.VOCAB.filter((v) => v.cat === cat).filter((v) => !q || fold([...v.pt, ...v.en, ...v.zh, v.py, v.nome.pt, v.nome.en, v.desc].join(" ")).includes(q));
+      if (!rows.length) continue;
+      total += rows.length;
+      html += `<div class="vcat"><h3>${esc(names.pt)}<span class="muted">${esc(names.en)} · <span class="han">${esc(names.zh)}</span></span></h3><div class="tbl"><table>
+        <thead><tr><th class="${on("pt")}">Português</th><th class="${on("en")}">English</th><th class="${on("zh")}">中文</th><th>Pinyin</th><th>O que é</th><th>O lado indica</th></tr></thead><tbody>` +
+        rows.map((v) => `<tr><td class="${on("pt")}"><code class="t-${cat}">${esc(v.pt[0])}</code><div class="vn">${esc(v.nome.pt)}</div></td>` +
+          `<td class="${on("en")}"><code>${esc(v.en[0])}</code><div class="vn">${esc(v.nome.en)}</div></td>` +
+          `<td class="han zhc${on("zh")}">${esc(v.zh[0])}</td><td>${esc(v.py)}</td><td class="vd">${esc(v.desc)}</td><td class="vl">${esc(v.lado || "sem lado")}</td></tr>`).join("") +
+        `</tbody></table></div></div>`;
+    }
+    $("#v-list").innerHTML = html || `<p class="empty">Nada encontrado. Tente outra palavra, em qualquer das três línguas.</p>`;
+    $("#v-count").textContent = q ? `${total} ${total === 1 ? "termo" : "termos"}` : `${T.VOCAB.length} termos`;
+  }
+
+  /* ---------- Exemplos ---------- */
+  function renderExamples() {
+    $("#ex-tabs").innerHTML = X.EXEMPLOS.map((e) =>
+      `<button type="button" data-ex="${e.id}" aria-pressed="${e.id === S.ex}"><b>${esc(e.titulo)}</b><span>${esc(e.tipo)}</span></button>`).join("");
+    const e = X.EXEMPLOS.find((x) => x.id === S.ex) || X.EXEMPLOS[0];
+    const fill = e.tipo.startsWith("Modelo");
+    $("#ex-panel").innerHTML = `<div class="exhead"><div><h3>${esc(e.titulo)}<span class="han">${esc(e.han)}</span><span class="badge${fill ? " fill" : ""}">${esc(e.tipo)}</span></h3><p>${esc(e.resumo)}</p></div>
+      <button class="btn" type="button" data-edit="${e.id}">Abrir no editor</button></div>${pairHTML(e.src, true)}`;
+  }
+
+  /* ---------- Editor ---------- */
+  const ed = $("#ed"), hl = $("#hl");
+  let playTimer = null;
+  function paintEditor() { hl.innerHTML = T.highlight(ed.value) + "\n "; hl.scrollTop = ed.scrollTop; }
+  function renderPlay() {
+    const r = T.parse(ed.value), e = T.expand(r.ast);
+    const errs = [...r.errors, ...e.errors].sort((a, b) => a.line - b.line || a.col - b.col);
+    $("#p-stats").textContent = statsText(e.stats) + (errs.length ? ` · ${errs.length} ${errs.length === 1 ? "erro" : "erros"}` : " · sem erros");
+    const ul = $("#p-errs");
+    ul.hidden = !errs.length;
+    ul.innerHTML = errs.slice(0, 12).map((x) => `<li><button type="button" data-line="${x.line}">linha ${x.line}</button><span>${esc(x.msg)}</span></li>`).join("");
+    $$(".tabs button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.out === S.out)));
+    const out = $("#p-out"), copy = $("#p-copy");
+    if (S.out === "leitura") {
+      copy.hidden = true;
+      out.innerHTML = e.rows.length ? scoreHTML(e.rows, S.lang) : `<p class="empty">Escreva um movimento à esquerda, por exemplo: arco E + soco D médio</p>`;
+    } else {
+      copy.hidden = !!errs.length || !ed.value.trim();
+      out.innerHTML = errs.length ? `<p class="empty">Corrija os erros para ver a tradução.</p>` : `<pre class="code">${T.highlight(T.print(r.ast, S.out))}</pre>`;
+    }
+  }
+  function setEditor(src) { ed.value = src; paintEditor(); renderPlay(); store.set("editor", src); }
+  ed.addEventListener("input", () => {
+    paintEditor();
+    clearTimeout(playTimer);
+    playTimer = setTimeout(() => { renderPlay(); store.set("editor", ed.value); }, 140);
+  });
+  ed.addEventListener("scroll", () => { hl.scrollTop = ed.scrollTop; });
+  $("#p-ex").innerHTML = X.EXEMPLOS.map((e) => `<option value="${e.id}">${esc(e.titulo)} · ${esc(e.tipo)}</option>`).join("") + `<option value="">Em branco</option>`;
+  $("#p-ex").addEventListener("change", (ev) => { const e = X.EXEMPLOS.find((x) => x.id === ev.target.value); setEditor(e ? e.src : ""); });
+  $("#p-clear").addEventListener("click", () => { $("#p-ex").value = ""; setEditor(""); ed.focus(); });
+
+  function copyText(text, fallbackEl) {
+    const done = () => toast("Copiado");
+    try {
+      navigator.clipboard.writeText(text).then(done, () => selectEl(fallbackEl));
+    } catch (e) { selectEl(fallbackEl); }
+  }
+  function selectEl(el) {
+    if (!el) return;
+    const range = document.createRange(); range.selectNodeContents(el);
+    const sel = getSelection(); sel.removeAllRanges(); sel.addRange(range);
+    toast("Texto selecionado: copie com o teclado");
+  }
+
+  document.addEventListener("click", (ev) => {
+    const lb = ev.target.closest("[data-lang]");
+    if (lb) { setLang(lb.dataset.lang); return; }
+    const ob = ev.target.closest("[data-out]");
+    if (ob) { S.out = ob.dataset.out; renderPlay(); return; }
+    const xb = ev.target.closest("[data-ex]");
+    if (xb) { S.ex = xb.dataset.ex; renderExamples(); return; }
+    const eb = ev.target.closest("[data-edit]");
+    if (eb) {
+      const e = X.EXEMPLOS.find((x) => x.id === eb.dataset.edit);
+      if (e) { $("#p-ex").value = e.id; setEditor(e.src); $("#experimente").scrollIntoView(); ed.focus({ preventScroll: true }); }
+      return;
+    }
+    const cb = ev.target.closest("[data-copy]");
+    if (cb) { const pre = cb.closest(".pane").querySelector("pre"); copyText(pre.textContent, pre); return; }
+    if (ev.target.id === "p-copy") { const pre = $("#p-out pre"); if (pre) copyText(pre.textContent, pre); return; }
+    const ln = ev.target.closest("[data-line]");
+    if (ln) {
+      const n = Number(ln.dataset.line), lines = ed.value.split("\n");
+      let start = 0; for (let i = 0; i < n - 1 && i < lines.length; i++) start += lines[i].length + 1;
+      const end = start + (lines[n - 1] || "").length;
+      ed.focus(); ed.setSelectionRange(start, end);
+      const lh = parseFloat(getComputedStyle(ed).lineHeight) || 22;
+      ed.scrollTop = Math.max(0, (n - 3) * lh); hl.scrollTop = ed.scrollTop;
+    }
+  });
+  $("#v-filter").addEventListener("input", renderVocab);
+
+  function setLang(l) {
+    if (!["pt", "en", "zh"].includes(l)) return;
+    S.lang = l; store.set("lang", l);
+    $$(".langs button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === l)));
+    renderDocs(); renderWords(); renderVocab(); renderExamples(); renderPlay();
+  }
+
+  const saved = store.get("editor");
+  ed.value = saved != null ? saved : X.EXEMPLOS[0].src;
+  if (saved == null) $("#p-ex").value = X.EXEMPLOS[0].id;
+  else { const m = X.EXEMPLOS.find((x) => x.src === saved); $("#p-ex").value = m ? m.id : ""; }
+  paintEditor();
+  setLang(S.lang);
+})();
+</script>
