@@ -1,14 +1,39 @@
-# Caderno Shaolin do Norte
+# Tàolù (套路)
 
-Caderno para acompanhar o progresso no Kung Fu Shaolin do Norte na grade da
-[Academia Santista de Kung Fu](https://kungfusantos.com.br/graduacao-kung-fu-shaolin-do-norte/).
+Linguagem para descrever katis de Kung Fu, sequências de socos e chutes e rotinas de treino,
+em português, inglês e chinês.
 
-- `caderno.html` é o código da página publicada como artifact no Claude:
-  https://claude.ai/artifact/XpmnQNmvRAUaiaZfQZomKZ
+A documentação, o vocabulário, os exemplos e um editor ao vivo estão em `index.html`,
+publicado pelo GitHub Pages.
 
-A página traz as 11 fases da graduação (katis, armas, lutas combinadas, socos e chutes 1–65),
-uma ficha por técnica (status, datas, sequência de movimentos, pontos-chave, erros, aplicações),
-o registro de treinos com meta semanal e a exportação em Markdown.
+```
+kati "Exemplo" {
+  parte "Abertura" {
+    unida + saudação
+  }
+  linha 1 {
+    [ avança E, arco E + soco D médio + cintura E ] x3 alt
+    gira 180 D
+  }
+}
+```
 
-O progresso e as anotações ficam no banco de dados do artifact, não neste repositório.
-Use "Exportar em Markdown" na aba Referência para guardar uma cópia aqui.
+- `+` junta o que acontece ao mesmo tempo; a vírgula separa o que vem em seguida.
+- `[ … ] x3` repete; `alt` troca os lados a cada repetição.
+- `D`/`E` indicam o lado; `alto`, `médio`, `baixo` a altura; `frente`, `trás`, `esquerda`, `direita` a direção.
+
+## Arquivos
+
+- `index.html`: página de documentação com editor.
+- `taolu.js`: interpretador (análise, desdobramento de repetições e espelhos, tradução pt/en/zh, destaque de sintaxe).
+  Funciona no navegador (`window.Taolu`) e no Node (`require("./taolu.js")`).
+- `exemplos.js`: exemplos e trechos do guia.
+
+## Uso no Node
+
+```js
+const T = require("./taolu.js");
+const { ast, errors } = T.parse(codigo);
+const { rows, stats } = T.expand(ast);   // movimentos numerados, repetições desdobradas
+console.log(T.print(ast, "zh"));         // o mesmo código em chinês
+```
