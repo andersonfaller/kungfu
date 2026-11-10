@@ -11,6 +11,7 @@
   --bg:#F5F5F1; --surface:#FFFFFF; --sunken:#ECECE6; --code:#EFEFE9; --ink:#151513; --muted:#5D5D56; --line:#D9D9D0;
   --base:#8A5600; --passo:#2856A3; --mao:#AF311D; --perna:#1A6F45; --corpo:#79389B; --along:#0A6D78;
   --side:#3B4557; --mod:#9C2A64; --num:#665400; --str:#496818; --cmt:#86867D;
+  --left:#9A9A92; --grid:#E3E3DB; --torso:#E8E8E1;
   --f-sans:"Spline Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --f-mono:"Spline Sans Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
   --f-han:"LXGW WenKai TC","Noto Serif TC","Kaiti TC","STKaiti","PMingLiU",serif;
@@ -21,6 +22,7 @@
     --bg:#111211; --surface:#181918; --sunken:#0C0D0C; --code:#141514; --ink:#EAEAE5; --muted:#A2A29A; --line:#2D2E2B;
     --base:#E2AE52; --passo:#88ABF0; --mao:#F0846C; --perna:#62CB94; --corpo:#C995EB; --along:#58C6D0;
     --side:#B7C2D6; --mod:#EF8FC1; --num:#D8C56A; --str:#AECA7D; --cmt:#7A7A72;
+    --left:#74746D; --grid:#262724; --torso:#242522;
     color-scheme:dark;
   }
 }
@@ -28,6 +30,7 @@
   --bg:#111211; --surface:#181918; --sunken:#0C0D0C; --code:#141514; --ink:#EAEAE5; --muted:#A2A29A; --line:#2D2E2B;
   --base:#E2AE52; --passo:#88ABF0; --mao:#F0846C; --perna:#62CB94; --corpo:#C995EB; --along:#58C6D0;
   --side:#B7C2D6; --mod:#EF8FC1; --num:#D8C56A; --str:#AECA7D; --cmt:#7A7A72;
+  --left:#74746D; --grid:#262724; --torso:#242522;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -204,6 +207,36 @@ td.on code,td.on.zhc{outline:2px solid color-mix(in srgb,var(--ink) 18%,transpar
 pre.ebnf{background:var(--code);border:1px solid var(--line);border-radius:var(--r);padding:16px;overflow-x:auto;font-size:.85rem;line-height:1.7;margin:0;white-space:pre}
 .notes{display:grid;gap:10px;max-width:70ch;margin-top:16px}
 footer{border-top:1px solid var(--line);padding-block:20px 40px;color:var(--muted);font-size:.85rem}
+/* Passo a passo */
+.editor pre .ln{display:block;min-height:1.65em}
+.editor pre .ln.cur{background:color-mix(in srgb,var(--passo) 15%,transparent);box-shadow:inset 3px 0 0 var(--passo)}
+.out .pane.exec-on{height:auto;max-height:none}
+.exec{display:grid;gap:10px;padding:12px}
+.stage{position:relative;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.stage canvas{display:block;width:100%;height:320px}
+@media (max-width:640px){.stage canvas{height:270px}}
+.cam{position:absolute;top:8px;right:8px;display:flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:var(--surface)}
+.cam button{border:0;background:none;padding:3px 9px;font-size:.78rem;cursor:pointer;color:var(--muted)}
+.cam button+button{border-left:1px solid var(--line)}
+.cam button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.xctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.xctl .btn{padding:6px 11px}
+.xctl label{font-size:.82rem;color:var(--muted);display:flex;gap:6px;align-items:center}
+.xctl select.input{padding:4px 8px}
+.xpos{margin-left:auto;font-family:var(--f-mono);font-size:.8rem;color:var(--muted)}
+.xinfo{min-height:4.4em;font-size:.9rem}
+.xl{font-family:var(--f-mono);font-size:.75rem;color:var(--muted);margin-bottom:4px}
+.strip{position:relative;display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;scrollbar-width:thin}
+.thumb{flex:none;display:grid;justify-items:center;gap:2px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 4px 3px;cursor:pointer;color:inherit}
+.thumb canvas{display:block;width:64px;height:84px}
+.thumb span{font-family:var(--f-mono);font-size:.7rem;color:var(--muted)}
+.thumb[aria-current="true"]{border-color:var(--passo);box-shadow:inset 0 0 0 1px var(--passo)}
+.thumb.todo span{color:var(--mao)}
+.gstrip .thumb{cursor:default}
+.gstrip .thumb canvas{width:92px;height:120px}
+.xkey{font-size:.8rem;color:var(--muted)}
+.xkey i{display:inline-block;width:14px;height:3px;border-radius:2px;vertical-align:middle;margin:0 4px 0 6px}
+.exbtns{display:flex;gap:8px;flex-wrap:wrap}
 .toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:8px 14px;border-radius:99px;font-size:.88rem;z-index:30}
 </style>
 
@@ -248,7 +281,7 @@ footer{border-top:1px solid var(--line);padding-block:20px 40px;color:var(--mute
   <section id="experimente">
     <div class="sec-head">
       <h2>Experimente</h2>
-      <p>Escreva ou altere à esquerda. A leitura e as traduções se atualizam enquanto você digita, e os erros apontam a linha.</p>
+      <p>Escreva ou altere à esquerda. A leitura e as traduções se atualizam enquanto você digita, e os erros apontam a linha. Na aba Passo a passo, um boneco executa cada movimento.</p>
     </div>
     <div class="toolbar">
       <label for="p-ex">Começar de</label>
@@ -268,7 +301,7 @@ footer{border-top:1px solid var(--line);padding-block:20px 40px;color:var(--mute
         <div class="pane">
           <div class="pane-head">
             <div class="tabs" role="group" aria-label="Mostrar">
-              <button type="button" data-out="leitura">Leitura</button><button type="button" data-out="pt">PT</button><button type="button" data-out="en">EN</button><button type="button" data-out="zh" class="han">中文</button>
+              <button type="button" data-out="leitura">Leitura</button><button type="button" data-out="exec">Passo a passo</button><button type="button" data-out="pt">PT</button><button type="button" data-out="en">EN</button><button type="button" data-out="zh" class="han">中文</button>
             </div>
             <button class="copy" type="button" id="p-copy" hidden>Copiar</button>
           </div>
@@ -297,6 +330,7 @@ footer{border-top:1px solid var(--line);padding-block:20px 40px;color:var(--mute
         <div class="txt">
           <p><code>D</code> e <code>E</code> dizem qual mão, perna ou pé faz a ação. Nas bases, o lado indica uma perna específica: no arco é a perna da frente, na base baixa é a perna estendida. A tabela do vocabulário mostra a regra de cada termo.</p>
           <p><code>alto</code>, <code>médio</code> e <code>baixo</code> dão a altura do golpe. <code>frente</code>, <code>trás</code>, <code>esquerda</code> e <code>direita</code> (ou as setas ↑ ↓ ← →) dão a direção, sempre em relação ao peito naquele momento. <code>gira 180 D</code> vira o corpo 180 graus para a direita.</p>
+          <p>Numa base, a direção diz para onde aponta a perna do lado indicado, e o corpo vira para lá: <code>arco E esquerda</code> vira o corpo para a esquerda e entra na base do arco com a perna esquerda à frente.</p>
         </div>
         <div class="demo" data-demo="lados"></div>
       </div>
@@ -344,6 +378,15 @@ footer{border-top:1px solid var(--line);padding-block:20px 40px;color:var(--mute
           <p>Comentários, nomes de postura e textos livres ficam como foram escritos: são suas palavras, não termos da linguagem.</p>
         </div>
         <div class="tri" id="tri"></div>
+      </div>
+      <div class="g">
+        <h3><span class="gn">9</span>Passo a passo com o boneco</h3>
+        <div class="txt">
+          <p>No editor, a aba <b>Passo a passo</b> executa o código um movimento por vez. Um boneco mostra a base, a posição de cada mão e de cada perna, para onde o corpo está virado e para onde se olha. Ações separadas por vírgula aparecem em sequência dentro do mesmo tempo, e a linha do código em execução fica marcada.</p>
+          <p>Traço escuro é o lado direito e cinza é o lado esquerdo. O que muda em cada movimento aparece na cor da sua família. O boneco é um esboço da estrutura do movimento e não substitui o professor.</p>
+        </div>
+        <div class="strip gstrip" id="g-strip"></div>
+        <div><button class="btn" type="button" data-run="hero">Executar o exemplo do início</button></div>
       </div>
     </div>
   </section>
@@ -403,7 +446,7 @@ separador   = fim-de-linha | ";" ;</pre>
     <div class="notes">
       <p>Os termos são palavras de uma lista fechada, o vocabulário acima. Uma palavra desconhecida vira erro, com sugestão quando parece um erro de digitação. O que não estiver no vocabulário entra como texto entre aspas.</p>
       <p>O espelho troca D com E e esquerda com direita, inclusive dentro de trechos chamados com <code>@</code>. Espelhos se combinam: um trecho espelhado dentro de uma repetição com <code>alt</code> volta ao lado original na 2ª vez.</p>
-      <p>Os arquivos da linguagem ficam na raiz do repositório: <code>taolu.js</code> é o interpretador (funciona no navegador e no Node), <code>exemplos.js</code> guarda os exemplos desta página. A extensão sugerida para arquivos de kati é <code>.taolu</code>.</p>
+      <p>Os arquivos da linguagem ficam na raiz do repositório: <code>taolu.js</code> é o interpretador (funciona no navegador e no Node), <code>exemplos.js</code> guarda os exemplos desta página e <code>boneco.js</code> calcula e desenha as poses do passo a passo. A extensão sugerida para arquivos de kati é <code>.taolu</code>.</p>
     </div>
   </section>
 </main>
@@ -412,6 +455,7 @@ separador   = fim-de-linha | ";" ;</pre>
 <div class="toast" id="toast" role="status" hidden></div>
 
 <script src="taolu.js"></script>
+<script src="boneco.js"></script>
 <script src="exemplos.js"></script>
 <script>
 (function () {
@@ -500,6 +544,14 @@ separador   = fim-de-linha | ";" ;</pre>
     const ast = T.parse(X.DEMOS.linguas).ast;
     $("#tri").innerHTML = ["pt", "en", "zh"].map((l) =>
       `<div class="pane code-pane"><div class="pane-head"><span>${LANG_LABEL[l]}</span></div><pre class="code">${T.highlight(l === "pt" ? X.DEMOS.linguas : T.print(ast, l))}</pre></div>`).join("");
+    renderGuideStrip();
+  }
+  function renderGuideStrip() {
+    const gs = $("#g-strip");
+    if (!gs || !window.Boneco) return;
+    const film = Boneco.build(T.expand(T.parse(X.HERO).ast).rows, T.BYID);
+    gs.innerHTML = film.steps.map((s, i) => `<div class="thumb"><canvas role="img" aria-label="Movimento ${i + 1}"></canvas><span>${i + 1}</span></div>`).join("");
+    $$(".thumb", gs).forEach((b, i) => paintCanvas(b.querySelector("canvas"), lastFrame(film, i), true));
   }
 
   /* ---------- Vocabulário ---------- */
@@ -558,13 +610,17 @@ separador   = fim-de-linha | ";" ;</pre>
     const e = X.EXEMPLOS.find((x) => x.id === S.ex) || X.EXEMPLOS[0];
     const fill = e.tipo.startsWith("Modelo");
     $("#ex-panel").innerHTML = `<div class="exhead"><div><h3>${esc(e.titulo)}<span class="han">${esc(e.han)}</span><span class="badge${fill ? " fill" : ""}">${esc(e.tipo)}</span></h3><p>${esc(e.resumo)}</p></div>
-      <button class="btn" type="button" data-edit="${e.id}">Abrir no editor</button></div>${pairHTML(e.src, true)}`;
+      <div class="exbtns"><button class="btn ghost" type="button" data-edit="${e.id}">Abrir no editor</button><button class="btn" type="button" data-run="${e.id}">Passo a passo</button></div></div>${pairHTML(e.src, true)}`;
   }
 
   /* ---------- Editor ---------- */
   const ed = $("#ed"), hl = $("#hl");
   let playTimer = null;
-  function paintEditor() { hl.innerHTML = T.highlight(ed.value) + "\n "; hl.scrollTop = ed.scrollTop; }
+  function paintEditor() {
+    hl.innerHTML = ed.value.split("\n").map((l, i) => `<span class="ln" data-l="${i + 1}">${T.highlight(l)}</span>`).join("") + '<span class="ln"> </span>';
+    hl.scrollTop = ed.scrollTop;
+    if (S.out === "exec") markLine(false);
+  }
   function renderPlay() {
     const r = T.parse(ed.value), e = T.expand(r.ast);
     const errs = [...r.errors, ...e.errors].sort((a, b) => a.line - b.line || a.col - b.col);
@@ -574,7 +630,13 @@ separador   = fim-de-linha | ";" ;</pre>
     ul.innerHTML = errs.slice(0, 12).map((x) => `<li><button type="button" data-line="${x.line}">linha ${x.line}</button><span>${esc(x.msg)}</span></li>`).join("");
     $$(".tabs button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.out === S.out)));
     const out = $("#p-out"), copy = $("#p-copy");
-    if (S.out === "leitura") {
+    out.closest(".pane").classList.toggle("exec-on", S.out === "exec");
+    if (S.out !== "exec") { stopRun(); clearLine(); }
+    if (S.out === "exec") {
+      copy.hidden = true;
+      if (!$("#x-cv")) { out.innerHTML = execShell(); const sp = $("#x-speed"); if (sp) sp.value = String(R.speed); }
+      buildFilm(e.rows);
+    } else if (S.out === "leitura") {
       copy.hidden = true;
       out.innerHTML = e.rows.length ? scoreHTML(e.rows, S.lang) : `<p class="empty">Escreva um movimento à esquerda, por exemplo: arco E + soco D médio</p>`;
     } else {
@@ -607,6 +669,25 @@ separador   = fim-de-linha | ";" ;</pre>
   }
 
   document.addEventListener("click", (ev) => {
+    const rb = ev.target.closest("[data-run]");
+    if (rb) {
+      const ex = X.EXEMPLOS.find((x) => x.id === rb.dataset.run);
+      const src = rb.dataset.run === "hero" ? X.HERO : ex ? ex.src : null;
+      if (src != null) {
+        $("#p-ex").value = ex ? ex.id : "";
+        ed.value = src; store.set("editor", src);
+        S.out = "exec"; R.i = -1;
+        paintEditor(); renderPlay();
+        $("#experimente").scrollIntoView();
+      }
+      return;
+    }
+    const xc = ev.target.closest("[data-x]");
+    if (xc) { runCmd(xc.dataset.x); return; }
+    const cm = ev.target.closest("[data-cam]");
+    if (cm) { R.cam = cm.dataset.cam; store.set("cam", R.cam); updateCam(); renderStage(); renderStrip(); markStrip(); renderGuideStrip(); return; }
+    const tb = ev.target.closest("[data-step]");
+    if (tb) { stopRun(); gotoStep(Number(tb.dataset.step), true); updatePlay(); return; }
     const lb = ev.target.closest("[data-lang]");
     if (lb) { setLang(lb.dataset.lang); return; }
     const ob = ev.target.closest("[data-out]");
@@ -633,6 +714,158 @@ separador   = fim-de-linha | ";" ;</pre>
     }
   });
   $("#v-filter").addEventListener("input", renderVocab);
+
+  /* ---------- Passo a passo ---------- */
+  const reduceMotion = (() => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) { return false; } })();
+  const R = { film: { initial: null, steps: [] }, i: -1, cur: null, playing: false, token: null, cam: store.get("cam") === "costas" ? "costas" : "frente", speed: 1, raf: 0, cancel: null };
+  function bColors() {
+    const cs = getComputedStyle(document.documentElement), g = (n) => cs.getPropertyValue(n).trim();
+    return { ink: g("--ink"), left: g("--left"), muted: g("--muted"), line: g("--grid"), surface: g("--surface"), torso: g("--torso"),
+      base: g("--base"), passo: g("--passo"), mao: g("--mao"), perna: g("--perna"), corpo: g("--corpo"), along: g("--along"), mod: g("--mod") };
+  }
+  function paintCanvas(cv, pose, thumb) {
+    if (!cv || !pose || !window.Boneco) return;
+    const w = cv.clientWidth || (thumb ? 64 : 400), h = cv.clientHeight || (thumb ? 84 : 320);
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(h * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
+    const ctx = cv.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    Boneco.draw(ctx, pose, { w, h, cam: R.cam, colors: bColors(), thumb });
+  }
+  const lastFrame = (film, i) => (i < 0 || !film.steps[i] ? film.initial : film.steps[i].frames[film.steps[i].frames.length - 1]);
+  function execShell() {
+    return `<div class="exec">
+      <div class="stage"><canvas id="x-cv" role="img" aria-label="Boneco executando o movimento atual"></canvas>
+        <div class="cam" role="group" aria-label="Vista"><button type="button" data-cam="frente">Frente</button><button type="button" data-cam="costas">Costas</button></div></div>
+      <div class="xctl">
+        <button class="btn ghost" type="button" data-x="first">Início</button>
+        <button class="btn ghost" type="button" data-x="prev">‹ Anterior</button>
+        <button class="btn" type="button" data-x="play" id="x-play">Executar</button>
+        <button class="btn ghost" type="button" data-x="next">Próximo ›</button>
+        <label for="x-speed">Velocidade <select class="input" id="x-speed"><option value="0.55">lenta</option><option value="1">normal</option><option value="1.7">rápida</option></select></label>
+        <span class="xpos" id="x-pos"></span>
+      </div>
+      <div class="xinfo" id="x-info" aria-live="polite"></div>
+      <div class="strip" id="x-strip" aria-label="Um boneco por movimento"></div>
+      <p class="xkey">Traço escuro: lado direito. Cinza: lado esquerdo. Em cor, o que muda no movimento:<i style="background:var(--base)"></i>base<i style="background:var(--passo)"></i>passo<i style="background:var(--mao)"></i>mãos<i style="background:var(--perna)"></i>pernas. O traço na cabeça mostra o olhar e a seta no chão, a frente do corpo.</p>
+    </div>`;
+  }
+  function buildFilm(rows) {
+    stopRun();
+    R.film = Boneco.build(rows, T.BYID);
+    if (R.i >= R.film.steps.length) R.i = R.film.steps.length - 1;
+    R.cur = lastFrame(R.film, R.i);
+    updateCam(); renderStrip(); markStrip(); renderStage(); renderInfo(); markLine(true); updatePlay();
+  }
+  function updateCam() { $$("[data-cam]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.cam === R.cam))); }
+  function renderStage() { paintCanvas($("#x-cv"), R.cur, false); }
+  function renderInfo() {
+    const box = $("#x-info"), pos = $("#x-pos");
+    if (!box) return;
+    const n = R.film.steps.length;
+    if (!n) { box.innerHTML = `<p class="muted">Nenhum movimento para executar. Escreva um movimento no editor.</p>`; pos.textContent = ""; return; }
+    if (R.i < 0) {
+      box.innerHTML = `<div class="xl">Posição inicial</div><p class="muted">Em pé, braços soltos. Aperte Executar para ver os ${n} movimentos seguidos, ou Próximo para ir um por um.</p>`;
+      pos.textContent = `0 / ${n}`; return;
+    }
+    const row = R.film.steps[R.i].row;
+    const acts = row.groups.map((g) => g.map((a) => chip(a, S.lang)).join('<span class="op">+</span>')).join('<span class="op seq" aria-label="depois">→</span>');
+    box.innerHTML = `<div class="xl">Movimento ${row.n} · linha ${row.line}</div>${row.label ? `<div class="sl">${esc(row.label)}</div>` : ""}<div class="sa">${acts}${modsHTML(row.mods, S.lang)}</div>`;
+    pos.textContent = `${R.i + 1} / ${n}`;
+  }
+  const MAX_THUMBS = 160;
+  function renderStrip() {
+    const box = $("#x-strip");
+    if (!box) return;
+    const steps = R.film.steps.slice(0, MAX_THUMBS);
+    box.innerHTML = steps.map((s, i) => `<button type="button" class="thumb${s.row.todo ? " todo" : ""}" data-step="${i}" aria-label="Ir para o movimento ${i + 1}" aria-current="${i === R.i}"><canvas></canvas><span>${i + 1}</span></button>`).join("") +
+      (R.film.steps.length > MAX_THUMBS ? `<span class="xl">+${R.film.steps.length - MAX_THUMBS}</span>` : "");
+    $$(".thumb", box).forEach((b) => paintCanvas(b.querySelector("canvas"), lastFrame(R.film, Number(b.dataset.step)), true));
+  }
+  function markStrip() {
+    const box = $("#x-strip");
+    if (!box) return;
+    $$(".thumb", box).forEach((b) => b.setAttribute("aria-current", String(Number(b.dataset.step) === R.i)));
+    const cur = box.querySelector('[aria-current="true"]');
+    if (cur) box.scrollLeft = Math.max(0, cur.offsetLeft - box.clientWidth / 2 + cur.offsetWidth / 2);
+  }
+  function clearLine() { $$("#hl .ln.cur").forEach((x) => x.classList.remove("cur")); }
+  function markLine(scroll) {
+    clearLine();
+    if (S.out !== "exec" || R.i < 0 || !R.film.steps[R.i]) return;
+    const el = hl.querySelector(`[data-l="${R.film.steps[R.i].row.line}"]`);
+    if (!el) return;
+    el.classList.add("cur");
+    if (scroll) {
+      const top = el.offsetTop, bottom = top + el.offsetHeight;
+      if (top < ed.scrollTop + 16 || bottom > ed.scrollTop + ed.clientHeight - 16) { ed.scrollTop = Math.max(0, top - ed.clientHeight / 3); hl.scrollTop = ed.scrollTop; }
+    }
+  }
+  function gotoStep(i, animate) {
+    const n = R.film.steps.length;
+    if (!n) return Promise.resolve(false);
+    i = Math.max(-1, Math.min(n - 1, i));
+    if (R.cancel) R.cancel();
+    const from = R.cur || R.film.initial;
+    R.i = i;
+    renderInfo(); markLine(true); markStrip();
+    if (!animate || reduceMotion || i < 0) { R.cur = lastFrame(R.film, i); renderStage(); return Promise.resolve(true); }
+    const frames = R.film.steps[i].frames;
+    return new Promise((resolve) => {
+      let k = 0, a = from, t0 = performance.now();
+      const dur = 560 / R.speed;
+      R.cancel = () => { cancelAnimationFrame(R.raf); R.cancel = null; resolve(false); };
+      const tick = (now) => {
+        const t = Math.min(1, (now - t0) / dur);
+        const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        R.cur = Boneco.mix(a, frames[k], e);
+        renderStage();
+        if (t >= 1) {
+          a = frames[k]; k++; t0 = now;
+          if (k >= frames.length) { R.cur = a; renderStage(); R.cancel = null; resolve(true); return; }
+        }
+        R.raf = requestAnimationFrame(tick);
+      };
+      R.raf = requestAnimationFrame(tick);
+    });
+  }
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  async function playRun() {
+    const n = R.film.steps.length;
+    if (!n) return;
+    const token = {};
+    R.token = token; R.playing = true; updatePlay();
+    if (R.i >= n - 1) { await gotoStep(-1, false); await wait(250); }
+    while (R.token === token && R.i < n - 1) {
+      const ok = await gotoStep(R.i + 1, true);
+      if (R.token !== token || ok === false) break;
+      await wait((reduceMotion ? 1100 : 480) / R.speed);
+    }
+    if (R.token === token) { R.playing = false; R.token = null; updatePlay(); }
+  }
+  function stopRun() { R.playing = false; R.token = null; if (R.cancel) R.cancel(); updatePlay(); }
+  function updatePlay() {
+    const b = $("#x-play");
+    if (b) b.textContent = R.playing ? "Pausar" : (R.film.steps.length && R.i >= R.film.steps.length - 1 ? "Executar de novo" : "Executar");
+  }
+  function runCmd(c) {
+    if (c === "play") { if (R.playing) stopRun(); else playRun(); return; }
+    stopRun();
+    if (c === "first") gotoStep(-1, false);
+    else if (c === "prev") gotoStep(R.i - 1, true);
+    else if (c === "next") gotoStep(R.i + 1, true);
+    updatePlay();
+  }
+  document.addEventListener("change", (ev) => { if (ev.target.id === "x-speed") R.speed = Number(ev.target.value) || 1; });
+  document.addEventListener("keydown", (ev) => {
+    if (S.out !== "exec" || !ev.target.closest || !ev.target.closest(".exec") || ev.target.tagName === "SELECT") return;
+    if (ev.key === "ArrowRight") { ev.preventDefault(); runCmd("next"); }
+    else if (ev.key === "ArrowLeft") { ev.preventDefault(); runCmd("prev"); }
+  });
+  if (window.ResizeObserver) new ResizeObserver(() => { if (S.out === "exec") renderStage(); }).observe($("#p-out"));
+  try {
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => { renderGuideStrip(); if (S.out === "exec") { renderStage(); renderStrip(); markStrip(); } });
+  } catch (e) {}
 
   function setLang(l) {
     if (!["pt", "en", "zh"].includes(l)) return;

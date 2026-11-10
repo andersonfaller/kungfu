@@ -28,6 +28,7 @@ kati "Exemplo" {
 - `taolu.js`: interpretador (análise, desdobramento de repetições e espelhos, tradução pt/en/zh, destaque de sintaxe).
   Funciona no navegador (`window.Taolu`) e no Node (`require("./taolu.js")`).
 - `exemplos.js`: exemplos e trechos do guia.
+- `boneco.js`: transforma cada movimento em pose de um boneco 3D simples e desenha em `<canvas>` (modo passo a passo).
 
 ## Uso no Node
 
